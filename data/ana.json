@@ -5,5 +5,7 @@
   "atualizado": "2026-06-02T02:57:31.531Z",
   "total": 0,
   "estacoes": [],
-  "erro": "timeout of 20000ms exceeded"
+  "erro": "timeout of 20000ms exceeded",
+  "ultimo_erro": "connect ECONNREFUSED 177.15.65.141:443",
+  "ultimo_erro_ts": "2026-06-02T10:41:51.562Z"
 }

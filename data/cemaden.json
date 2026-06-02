@@ -5,5 +5,7 @@
   "atualizado": "2026-06-02T02:57:11.376Z",
   "total": 0,
   "estacoes": [],
-  "erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br"
+  "erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br",
+  "ultimo_erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br",
+  "ultimo_erro_ts": "2026-06-02T10:41:51.091Z"
 }
