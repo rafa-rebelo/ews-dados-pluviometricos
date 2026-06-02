@@ -1,0 +1,9 @@
+{
+  "fonte": "CEMADEN",
+  "uf": "RS",
+  "horas": 120,
+  "atualizado": "2026-06-02T02:57:11.376Z",
+  "total": 0,
+  "estacoes": [],
+  "erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br"
+}

@@ -1,5 +1,5 @@
 {
-  "atualizado": "2024-01-01T00:00:00.000Z",
+  "atualizado": "2026-06-02T02:57:31.569Z",
   "total": 10,
   "com_dados": 0,
   "sem_dados": 10,
@@ -11,17 +11,86 @@
     "ana": 0,
     "sintetico": 10
   },
-  "nota": "Arquivo inicial com posições geográficas. Dados reais serão preenchidos pelo GitHub Actions a cada 6h.",
   "estacoes": [
-    { "id": "SYN001", "name": "Muçum",          "lat": -29.169, "lon": -51.868, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN002", "name": "Encantado",      "lat": -29.234, "lon": -51.869, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN003", "name": "Roca Sales",     "lat": -29.492, "lon": -51.882, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN004", "name": "Venâncio Aires", "lat": -29.612, "lon": -52.190, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN005", "name": "Lajeado",        "lat": -29.461, "lon": -51.962, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN006", "name": "Arroio do Meio", "lat": -29.395, "lon": -51.937, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN007", "name": "Estrela",        "lat": -29.505, "lon": -51.956, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN008", "name": "Taquari",        "lat": -29.797, "lon": -51.864, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN009", "name": "Colinas",        "lat": -29.396, "lon": -51.855, "p120": 0, "source": "SINTÉTICO" },
-    { "id": "SYN010", "name": "Marquês do Erval","lat": -29.650, "lon": -52.020, "p120": 0, "source": "SINTÉTICO" }
+    {
+      "id": "SYN001",
+      "name": "Muçum",
+      "lat": -29.169,
+      "lon": -51.868,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN002",
+      "name": "Encantado",
+      "lat": -29.234,
+      "lon": -51.869,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN003",
+      "name": "Roca Sales",
+      "lat": -29.492,
+      "lon": -51.882,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN004",
+      "name": "Venâncio Aires",
+      "lat": -29.612,
+      "lon": -52.19,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN005",
+      "name": "Lajeado",
+      "lat": -29.461,
+      "lon": -51.962,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN006",
+      "name": "Arroio do Meio",
+      "lat": -29.395,
+      "lon": -51.937,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN007",
+      "name": "Estrela",
+      "lat": -29.505,
+      "lon": -51.956,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN008",
+      "name": "Taquari",
+      "lat": -29.797,
+      "lon": -51.864,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN009",
+      "name": "Colinas",
+      "lat": -29.396,
+      "lon": -51.855,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    },
+    {
+      "id": "SYN010",
+      "name": "Marques Erval",
+      "lat": -29.65,
+      "lon": -52.02,
+      "p120": 0,
+      "source": "SINTÉTICO"
+    }
   ]
 }
