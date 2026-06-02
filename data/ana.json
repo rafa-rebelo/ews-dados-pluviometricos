@@ -6,6 +6,6 @@
   "total": 0,
   "estacoes": [],
   "erro": "timeout of 20000ms exceeded",
-  "ultimo_erro": "timeout of 20000ms exceeded",
-  "ultimo_erro_ts": "2026-06-02T16:49:39.702Z"
+  "ultimo_erro": "Nenhuma URL da ANA respondeu",
+  "ultimo_erro_ts": "2026-06-02T20:07:33.952Z"
 }

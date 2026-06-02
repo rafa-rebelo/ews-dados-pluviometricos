@@ -1,10 +1,15 @@
 {
-  "atualizado": "2024-01-01T00:00:00.000Z",
+  "versao": "2.1",
+  "atualizado": "2026-06-02T20:07:33.987Z",
   "total_estacoes": 10,
   "com_dados": 0,
   "p120_max_mm": 0,
-  "fontes_ativas": ["SINTÉTICO"],
-  "proximo_update": "2024-01-01T06:00:00.000Z",
+  "fontes_ativas": [
+    "SINTÉTICO"
+  ],
+  "por_fonte": {
+    "SINTÉTICO": 10
+  },
   "saude": "FALLBACK_SINTETICO",
-  "nota": "Dados iniciais. GitHub Actions atualiza a cada 6h automaticamente."
+  "proximo_update": "2026-06-03T02:07:33.993Z"
 }

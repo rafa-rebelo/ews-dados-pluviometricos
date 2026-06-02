@@ -6,6 +6,6 @@
   "total": 0,
   "estacoes": [],
   "erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br",
-  "ultimo_erro": "getaddrinfo ENOTFOUND sjc.salvar.cemaden.gov.br",
-  "ultimo_erro_ts": "2026-06-02T16:49:19.549Z"
+  "ultimo_erro": "Todas as URLs CEMADEN inacessíveis",
+  "ultimo_erro_ts": "2026-06-02T20:03:27.658Z"
 }
