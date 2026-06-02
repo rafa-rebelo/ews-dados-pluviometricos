@@ -1,166 +1,166 @@
 #!/usr/bin/env node
 // ============================================================
-//  fetch-ana.js
-//  Busca dados pluviométricos da ANA HidroWeb (Telemetria)
-//  e salva em data/ana.json
-//  Máximo de 60 estações por execução (limite de tempo CI)
+//  fetch-ana.js  v2.1
+//  FIX: timeout 60s + retry 2x + SSL permissivo + User-Agent browser
 // ============================================================
 'use strict';
 
 const axios = require('axios');
+const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 
 const UF      = process.env.UF    || 'RS';
 const HORAS   = parseInt(process.env.HORAS || '120', 10);
-const MAX_EST = 60;
+const MAX_EST = 50;
+const OUTPUT  = path.join(__dirname, '..', 'data', 'ana.json');
 
-const ANA_BASE = 'https://telemetria.ana.gov.br/api';
-const OUTPUT   = path.join(__dirname, '..', 'data', 'ana.json');
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-function fmtDate(d) {
-  return d.toISOString().split('T')[0]; // YYYY-MM-DD
+const HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'pt-BR,pt;q=0.9',
+  'Referer': 'https://telemetria.ana.gov.br/',
+  'Origin': 'https://telemetria.ana.gov.br',
+};
+
+// URLs candidatas para listar estações
+const ESTACOES_URLS = [
+  `https://telemetria.ana.gov.br/api/Estacao/GetEstacoes?tipoEstacao=2&uf=${UF}`,
+  `http://telemetria.ana.gov.br/api/Estacao/GetEstacoes?tipoEstacao=2&uf=${UF}`,
+];
+
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+
+async function tentarGet(url, timeout = 60000) {
+  return axios.get(url, { timeout, httpsAgent, headers: HEADERS });
 }
 
-async function fetchEstacoes() {
-  const url = `${ANA_BASE}/Estacao/GetEstacoes?tipoEstacao=2&uf=${UF}`;
-  console.log(`[ANA] Listando estações: ${url}`);
-  const resp = await axios.get(url, {
-    timeout: 20000,
-    headers: { 'User-Agent': 'EWS-GitHub-Bot/1.0' }
-  });
-  const data = resp.data;
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.estacoes)) return data.estacoes;
-  return [];
+async function tentarComRetry(url, tentativas = 2, timeout = 60000) {
+  for (let i = 0; i < tentativas; i++) {
+    try {
+      return await tentarGet(url, timeout);
+    } catch (err) {
+      console.warn(`  Tentativa ${i+1}/${tentativas} falhou: ${err.message}`);
+      if (i < tentativas - 1) {
+        await new Promise(r => setTimeout(r, 3000)); // esperar 3s antes de retry
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+async function listarEstacoes() {
+  for (const url of ESTACOES_URLS) {
+    console.log(`[ANA] Listando estações: ${url}`);
+    try {
+      const resp = await tentarComRetry(url, 2, 60000);
+      const data = resp.data;
+      if (Array.isArray(data) && data.length > 0) return data;
+      if (data?.estacoes && data.estacoes.length > 0) return data.estacoes;
+    } catch (err) {
+      console.warn(`[ANA] URL ${url.split('/')[2]} falhou: ${err.message}`);
+    }
+  }
+  throw new Error('Nenhuma URL da ANA respondeu');
 }
 
 async function fetchDados(cod, dataIni, dataFim) {
-  const url = `${ANA_BASE}/Dados/GetDados` +
-    `?codEstacao=${cod}&dataInicio=${dataIni}&dataFim=${dataFim}`;
-  const resp = await axios.get(url, {
-    timeout: 10000,
-    headers: { 'User-Agent': 'EWS-GitHub-Bot/1.0' }
-  });
-  const data = resp.data;
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.medicoes)) return data.medicoes;
-  if (data && Array.isArray(data.dados))    return data.dados;
+  const urls = [
+    `https://telemetria.ana.gov.br/api/Dados/GetDados?codEstacao=${cod}&dataInicio=${dataIni}&dataFim=${dataFim}`,
+    `http://telemetria.ana.gov.br/api/Dados/GetDados?codEstacao=${cod}&dataInicio=${dataIni}&dataFim=${dataFim}`,
+  ];
+  for (const url of urls) {
+    try {
+      const resp = await tentarGet(url, 15000);
+      const data = resp.data;
+      if (Array.isArray(data)) return data;
+      if (data?.medicoes) return data.medicoes;
+    } catch (_) {}
+  }
   return [];
 }
 
-function somarMedicoes(medicoes, horasJanela) {
-  const corte = Date.now() - horasJanela * 3600 * 1000;
-  let total = 0;
-  for (const m of medicoes) {
+function somarMedicoes(medicoes, horas) {
+  const corte = Date.now() - horas * 3600 * 1000;
+  return medicoes.reduce((soma, m) => {
     const ts = new Date(m.dataMedicao || m.DataMedicao || m.data || 0).getTime();
-    const v  = parseFloat(m.valor || m.Valor || m.chuva || 0);
-    if (ts >= corte && !isNaN(v)) total += v;
-  }
-  return parseFloat(total.toFixed(1));
+    const v  = parseFloat(m.valor || m.Valor || 0);
+    return soma + (ts >= corte && !isNaN(v) ? v : 0);
+  }, 0);
 }
 
 async function main() {
   const agora  = new Date();
   const inicio = new Date(agora.getTime() - HORAS * 3600 * 1000);
-  const dataFim = fmtDate(agora);
-  const dataIni = fmtDate(inicio);
-
-  console.log(`[ANA] UF=${UF} período=${dataIni}→${dataFim}`);
+  console.log(`[ANA] UF=${UF} período=${fmtDate(inicio)}→${fmtDate(agora)}`);
 
   let todasEstacoes = [];
   try {
-    todasEstacoes = await fetchEstacoes();
-    console.log(`[ANA] ${todasEstacoes.length} estações encontradas. Processando até ${MAX_EST}...`);
+    todasEstacoes = await listarEstacoes();
+    console.log(`[ANA] ${todasEstacoes.length} estações encontradas`);
   } catch (err) {
-    console.error(`[ANA] ❌ Erro ao listar estações: ${err.message}`);
-    salvarFallback(err.message);
-    process.exit(0);
+    console.error(`[ANA] ❌ ${err.message}`);
+    preservarOuCriarVazio(err.message);
+    return;
   }
 
-  const amostra = todasEstacoes.slice(0, MAX_EST);
-
-  // Processar em paralelo com concorrência limitada a 10 simultâneas
-  const CONCORRENCIA = 10;
-  const estacoesFinal = [];
+  const amostra      = todasEstacoes.slice(0, MAX_EST);
+  const CONCORRENCIA = 5; // Reduzido para não sobrecarregar o servidor
+  const resultado    = [];
 
   for (let i = 0; i < amostra.length; i += CONCORRENCIA) {
-    const lote = amostra.slice(i, i + CONCORRENCIA);
-    const results = await Promise.allSettled(lote.map(async (est) => {
+    const lote   = amostra.slice(i, i + CONCORRENCIA);
+    const results = await Promise.allSettled(lote.map(async est => {
       const cod = est.codigo || est.Codigo || est.codEstacao;
-      const lat = parseFloat(est.latitude  || est.Latitude  || 0);
-      const lon = parseFloat(est.longitude || est.Longitude || 0);
-
-      if (!cod || isNaN(lat) || isNaN(lon)) return null;
+      const lat = parseFloat(est.latitude  || est.VL_LATITUDE  || 0);
+      const lon = parseFloat(est.longitude || est.VL_LONGITUDE || 0);
+      if (!cod || isNaN(lat) || isNaN(lon) || lat === 0) return null;
 
       let p120 = 0;
       try {
-        const medicoes = await fetchDados(cod, dataIni, dataFim);
+        const medicoes = await fetchDados(cod, fmtDate(inicio), fmtDate(agora));
         p120 = somarMedicoes(medicoes, HORAS);
-      } catch (_) { /* estação inacessível */ }
+      } catch (_) {}
 
       return {
-        id:     String(cod),
-        name:   est.nome || est.Nome || `ANA-${cod}`,
-        lat:    lat,
-        lon:    lon,
-        p120:   p120,
-        source: 'ANA',
-        uf:     UF
+        id: String(cod), name: est.nome || est.DC_NOME || `ANA-${cod}`,
+        lat, lon, p120: parseFloat(p120.toFixed(1)), source: 'ANA'
       };
     }));
-
     for (const r of results) {
-      if (r.status === 'fulfilled' && r.value) {
-        estacoesFinal.push(r.value);
-      }
+      if (r.status === 'fulfilled' && r.value) resultado.push(r.value);
     }
-    process.stdout.write(`  Lote ${Math.min(i + CONCORRENCIA, amostra.length)}/${amostra.length} processado\r`);
+    process.stdout.write(`  ${Math.min(i+CONCORRENCIA, amostra.length)}/${amostra.length}\r`);
   }
-
   console.log('');
 
   const output = {
-    fonte:      'ANA HidroWeb',
-    uf:         UF,
-    horas:      HORAS,
-    atualizado: agora.toISOString(),
-    total:      estacoesFinal.length,
-    estacoes:   estacoesFinal
+    fonte: 'ANA HidroWeb', uf: UF, horas: HORAS,
+    atualizado: agora.toISOString(), total: resultado.length, estacoes: resultado
   };
-
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
   fs.writeFileSync(OUTPUT, JSON.stringify(output, null, 2), 'utf8');
-
-  const comDados = estacoesFinal.filter(e => e.p120 > 0);
-  console.log(`[ANA] ✅ ${estacoesFinal.length} estações salvas (${comDados.length} com dados > 0mm)`);
-  comDados.slice(0, 3).forEach(e => {
-    console.log(`  → ${e.name}: ${e.p120} mm`);
-  });
+  console.log(`[ANA] ✅ ${resultado.length} estações salvas`);
 }
 
-function salvarFallback(mensagemErro) {
+function preservarOuCriarVazio(motivo) {
   if (fs.existsSync(OUTPUT)) {
-    console.log('[ANA] ⚠️  Mantendo dados anteriores.');
     try {
-      const existing = JSON.parse(fs.readFileSync(OUTPUT, 'utf8'));
-      existing.ultimo_erro    = mensagemErro;
-      existing.ultimo_erro_ts = new Date().toISOString();
-      fs.writeFileSync(OUTPUT, JSON.stringify(existing, null, 2), 'utf8');
+      const ex = JSON.parse(fs.readFileSync(OUTPUT, 'utf8'));
+      ex.ultimo_erro = motivo; ex.ultimo_erro_ts = new Date().toISOString();
+      fs.writeFileSync(OUTPUT, JSON.stringify(ex, null, 2), 'utf8');
     } catch (_) {}
   } else {
-    const fallback = {
-      fonte: 'ANA HidroWeb', uf: UF, horas: HORAS,
-      atualizado: new Date().toISOString(), total: 0,
-      estacoes: [], erro: mensagemErro
-    };
     fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-    fs.writeFileSync(OUTPUT, JSON.stringify(fallback, null, 2), 'utf8');
+    fs.writeFileSync(OUTPUT, JSON.stringify({
+      fonte: 'ANA HidroWeb', uf: UF, horas: HORAS,
+      atualizado: new Date().toISOString(), total: 0, estacoes: [], erro: motivo
+    }, null, 2), 'utf8');
   }
+  process.exit(0);
 }
 
-main().catch(err => {
-  console.error(`[ANA] ❌ Erro fatal: ${err.message}`);
-  salvarFallback(err.message);
-  process.exit(0);
-});
+main().catch(err => { preservarOuCriarVazio(err.message); });
