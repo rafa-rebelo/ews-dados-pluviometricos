@@ -1,13 +1,16 @@
 {
   "name": "ews-dados-pluviometricos",
-  "version": "1.0.0",
-  "description": "Dados pluviométricos automáticos para o Sistema de Alerta Precoce de Deslizamentos — GEE",
+  "version": "2.0.0",
+  "description": "Dados pluviométricos automáticos — EWS GEE · CEMADEN + ANA + SNIRH + INMET",
   "private": true,
   "scripts": {
-    "fetch-cemaden": "node scripts/fetch-cemaden.js",
-    "fetch-ana":     "node scripts/fetch-ana.js",
-    "update":        "node scripts/update-metadata.js",
-    "build":         "npm run fetch-cemaden && npm run fetch-ana && npm run update"
+    "cemaden":  "node scripts/fetch-cemaden.js",
+    "ana":      "node scripts/fetch-ana.js",
+    "snirh":    "node scripts/fetch-snirh-wfs.js",
+    "inmet":    "node scripts/fetch-inmet.js",
+    "merge":    "node scripts/update-metadata.js",
+    "build":    "npm run cemaden && npm run ana && npm run snirh && npm run inmet && npm run merge",
+    "rapido":   "npm run cemaden && npm run inmet && npm run merge"
   },
   "dependencies": {
     "axios": "^1.7.2"
