@@ -1,0 +1,19 @@
+{
+  "name": "ews-dados-pluviometricos",
+  "version": "1.0.0",
+  "description": "Dados pluviométricos automáticos para o Sistema de Alerta Precoce de Deslizamentos — GEE",
+  "private": true,
+  "scripts": {
+    "fetch-cemaden": "node scripts/fetch-cemaden.js",
+    "fetch-ana":     "node scripts/fetch-ana.js",
+    "update":        "node scripts/update-metadata.js",
+    "build":         "npm run fetch-cemaden && npm run fetch-ana && npm run update"
+  },
+  "dependencies": {
+    "axios": "^1.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
