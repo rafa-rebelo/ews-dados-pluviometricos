@@ -1,0 +1,50 @@
+name: Atualizar Dados Pluviométricos EWS
+
+on:
+  schedule:
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
+
+jobs:
+  atualizar-dados:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências
+        run: npm install axios
+
+      - name: Buscar dados CEMADEN
+        run: node scripts/fetch-cemaden.js
+        env:
+          UF: RS
+          HORAS: 120
+        continue-on-error: true
+
+      - name: Buscar dados ANA HidroWeb
+        run: node scripts/fetch-ana.js
+        env:
+          UF: RS
+          HORAS: 120
+        continue-on-error: true
+
+      - name: Atualizar metadados e fallback sintético
+        run: node scripts/update-metadata.js
+
+      - name: Commit e push dos dados atualizados
+        run: |
+          git config --global user.name  "EWS Bot"
+          git config --global user.email "ews-bot@github-actions"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: atualizar dados pluviométricos $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
