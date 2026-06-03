@@ -1,16 +1,16 @@
 {
   "name": "ews-dados-pluviometricos",
-  "version": "2.1.0",
-  "description": "EWS GEE · CEMADEN + ANA + SNIRH + INMET + Open-Meteo",
+  "version": "2.2.0",
+  "description": "EWS GEE · CEMADEN + ANA HidroWebService + SNIRH + INMET + Open-Meteo",
   "private": true,
   "scripts": {
     "openmeteo": "node scripts/fetch-openmeteo.js",
     "cemaden":   "node scripts/fetch-cemaden.js",
-    "ana":       "node scripts/fetch-ana.js",
-    "snirh":     "node scripts/fetch-snirh-wfs.js",
+    "ana":       "node scripts/fetch-ana-hidrowebservice.js",
     "inmet":     "node scripts/fetch-inmet.js",
+    "snirh":     "node scripts/fetch-snirh-wfs.js",
     "merge":     "node scripts/update-metadata.js",
-    "build":     "npm run openmeteo && npm run cemaden && npm run ana && npm run snirh && npm run inmet && npm run merge"
+    "build":     "npm run openmeteo && npm run cemaden && npm run ana && npm run inmet && npm run snirh && npm run merge"
   },
   "dependencies": { "axios": "^1.7.2" },
   "engines": { "node": ">=20" },
