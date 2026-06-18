@@ -1,6 +1,6 @@
 {
   "versao": "2.1",
-  "atualizado": "2026-06-17T20:20:35.059Z",
+  "atualizado": "2026-06-18T04:15:36.220Z",
   "total_estacoes": 10,
   "com_dados": 0,
   "p120_max_mm": 0,
@@ -11,5 +11,5 @@
     "SINTÉTICO": 10
   },
   "saude": "FALLBACK_SINTETICO",
-  "proximo_update": "2026-06-18T02:20:35.065Z"
+  "proximo_update": "2026-06-18T10:15:36.226Z"
 }
